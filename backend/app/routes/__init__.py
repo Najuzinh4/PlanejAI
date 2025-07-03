@@ -1,5 +1,2 @@
-from fastapi import APIRouter
-from .health import router as health_router
-
-router = APIRouter()
-router.include_router(health_router)
+from .subjects import router as subjects_router
+router.include_router(subjects_router, prefix="/api")

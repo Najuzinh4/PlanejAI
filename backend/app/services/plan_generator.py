@@ -1,3 +1,3 @@
-def generate_plan(subjects: list):
-    # Simulação básica só pra ilustrar
-    return {"plan": f"Generated plan for {len(subjects)} subjects"}
+def generate_plan(subjects):
+    plan = [{"day": "Monday", "subject": s.name} for s in subjects]
+    return plan

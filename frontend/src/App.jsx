@@ -1,12 +1,15 @@
-import Header from './components/Header';
+// App.jsx
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Header from "./components/Header";
+import CreateSubject from "./pages/CreateSubject";
 
 function App() {
   return (
-    <div>
+    <BrowserRouter>
       <Header />
-      <p>Study planner powered by AI</p>
-    </div>
+      <Routes>
+        <Route path="/subjects" element={<CreateSubject />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;
