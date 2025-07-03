@@ -1,2 +1,2 @@
-from .subjects import router as subjects_router
-router.include_router(subjects_router, prefix="/api")
+from .ai import router as ai_router
+router.include_router(ai_router, prefix="/api")
