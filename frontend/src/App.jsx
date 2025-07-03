@@ -1,7 +1,9 @@
+import Header from './components/Header';
+
 function App() {
   return (
     <div>
-      <h1>PlanejAI</h1>
+      <Header />
       <p>Study planner powered by AI</p>
     </div>
   );
