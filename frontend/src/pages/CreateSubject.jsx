@@ -6,9 +6,11 @@ export default function CreateSubject() {
 
   return (
     <div>
-      <h2>📘 Add Subject</h2>
-      <input placeholder="Subject name" onChange={e => setName(e.target.value)} />
-      <input placeholder="Hours per week" type="number" onChange={e => setHours(e.target.value)} />
-      <button onClick={() => alert(`Added ${name}, ${hours}h/week`)}>Add</button>
+      <h2>Adicionar Disciplina</h2>
+      <input placeholder="Nome da disciplina" onChange={e => setName(e.target.value)} />
+      <input placeholder="Horas por semana" type="number" onChange={e => setHours(e.target.value)} />
+      <button onClick={() => alert(`Adicionado ${name}, ${hours}h/semana`)}>Adicionar</button>
     </div>
   )
+}
+

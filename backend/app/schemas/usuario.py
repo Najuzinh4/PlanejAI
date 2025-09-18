@@ -1,11 +1,17 @@
-from sqlalchemy import Column, Integer, String, TIMESTAMP, func
-from app.database import Base
+from pydantic import BaseModel, EmailStr
+from typing import Optional
 
-class Usuario(Base):
-    __tablename__ = "usuario"
 
-    id_usuario = Column(Integer, primary_key=True, index=True)
-    nome = Column(String(100), nullable=False)
-    email = Column(String(100), unique=True, nullable=False)
-    senha = Column(String(255), nullable=False)
-    criado_em = Column(TIMESTAMP, server_default=func.now())
+class UsuarioCreate(BaseModel):
+    nome: str
+    email: EmailStr
+    senha: str
+
+
+class UsuarioOut(BaseModel):
+    id_usuario: int
+    nome: str
+    email: EmailStr
+
+    class Config:
+        from_attributes = True
