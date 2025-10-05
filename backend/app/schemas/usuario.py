@@ -9,10 +9,6 @@ class UsuarioCreate(BaseModel):
 
 
 
-
-
-# teste[[
-
 class UsuarioOut(BaseModel):
     id_usuario: int
     nome: str
