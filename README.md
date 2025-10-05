@@ -87,6 +87,7 @@ O frontend será aberto normalmente no navegador (geralmente `http://localhost:3
 ## 🤝 Contribuição
 
 Contribuições são bem-vindas!  
+.
 Para contribuir, faça um fork do repositório, crie uma branch com sua feature ou correção, e envie um pull request.
 
 ---
