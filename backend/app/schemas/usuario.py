@@ -8,6 +8,11 @@ class UsuarioCreate(BaseModel):
     senha: str
 
 
+
+
+
+# teste[[
+
 class UsuarioOut(BaseModel):
     id_usuario: int
     nome: str
