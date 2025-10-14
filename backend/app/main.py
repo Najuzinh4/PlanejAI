@@ -23,3 +23,38 @@ def home():
 
 app.include_router(api_router)
 
+# Minimal seed for demo environments
+@app.on_event("startup")
+def seed_demo():
+    try:
+        from app.database import SessionLocal
+        from app.models.usuario import Usuario
+        from app.models.plano import Plano
+        from app.models.item_do_plano import ItemDoPlano
+
+        with SessionLocal() as db:
+            has_plano = db.query(Plano).first()
+            if has_plano:
+                return
+
+            user = Usuario(nome="Demo", email="demo@planej.ai", senha="demo")
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+
+            plano = Plano(id_usuario=user.id_usuario, periodo="2025-01", topico="Apresentação", tempo=6, prova=False, tipo=False)
+            db.add(plano)
+            db.commit()
+            db.refresh(plano)
+
+            itens = [
+                ItemDoPlano(id_pe=plano.id_pe, descricao="Semana 1: Revisar conceitos principais", temp=2),
+                ItemDoPlano(id_pe=plano.id_pe, descricao="Semana 2: Exercícios práticos diários", temp=2),
+                ItemDoPlano(id_pe=plano.id_pe, descricao="Semana 3: Simulados e revisão espaçada", temp=2),
+            ]
+            db.add_all(itens)
+            db.commit()
+    except Exception:
+        # Não falhar o app por seed; útil apenas para demo
+        pass
+

@@ -3,3 +3,6 @@ uvicorn
 openai
 sqlalchemy
 pytest
+
+psycopg2-binary
+
