@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import api from '../services/api';
 
 export default function Cronograma() {
-  const [subject, setSubject] = useState('');
-  const [hours, setHours] = useState(6);
-  const [difficulty, setDifficulty] = useState('média');
-  const [goal, setGoal] = useState('');
-  const [weeks, setWeeks] = useState(4);
-  const [plan, setPlan] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [subject, setSubject] = React.useState('');
+  const [hours, setHours] = React.useState(6);
+  const [difficulty, setDifficulty] = React.useState('media');
+  const [goal, setGoal] = React.useState('');
+  const [weeks, setWeeks] = React.useState(4);
+  const [plan, setPlan] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
 
   const generate = async () => {
     setLoading(true);
@@ -29,25 +29,28 @@ export default function Cronograma() {
   }
 
   return (
-    <div>
-      <h2>Gerar Cronograma</h2>
-      <input placeholder="Disciplina" value={subject} onChange={e => setSubject(e.target.value)} />
-      <input placeholder="Horas/semana" type="number" value={hours} onChange={e => setHours(e.target.value)} />
-      <select value={difficulty} onChange={e => setDifficulty(e.target.value)}>
-        <option value="baixa">baixa</option>
-        <option value="média">média</option>
-        <option value="alta">alta</option>
-      </select>
-      <input placeholder="Objetivo (opcional)" value={goal} onChange={e => setGoal(e.target.value)} />
-      <input placeholder="Semanas (opcional)" type="number" value={weeks} onChange={e => setWeeks(e.target.value)} />
-      <button onClick={generate} disabled={loading || !subject}> {loading ? 'Gerando...' : 'Gerar'} </button>
+    <div className="container py-6">
+      <h2 className="mb-4 text-2xl font-semibold">Gerar Cronograma</h2>
+
+      <div className="grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2">
+        <input className="rounded-md border border-gray-300 px-3 py-2" placeholder="Disciplina" value={subject} onChange={e => setSubject(e.target.value)} />
+        <input className="rounded-md border border-gray-300 px-3 py-2" placeholder="Horas/semana" type="number" value={hours} onChange={e => setHours(e.target.value)} />
+        <select className="rounded-md border border-gray-300 px-3 py-2" value={difficulty} onChange={e => setDifficulty(e.target.value)}>
+          <option value="baixa">baixa</option>
+          <option value="media">média</option>
+          <option value="alta">alta</option>
+        </select>
+        <input className="rounded-md border border-gray-300 px-3 py-2" placeholder="Objetivo (opcional)" value={goal} onChange={e => setGoal(e.target.value)} />
+        <input className="rounded-md border border-gray-300 px-3 py-2" placeholder="Semanas (opcional)" type="number" value={weeks} onChange={e => setWeeks(e.target.value)} />
+      </div>
+
+      <button className="mt-4 inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white disabled:opacity-50" onClick={generate} disabled={loading || !subject}> {loading ? 'Gerando...' : 'Gerar'} </button>
 
       {plan && (
-        <pre style={{ whiteSpace: 'pre-wrap', background: '#f7f7f7', padding: 12, marginTop: 16 }}>
+        <pre className="mt-4 whitespace-pre-wrap rounded-md bg-white p-4 text-sm">
           {plan}
         </pre>
       )}
     </div>
   )
 }
-
