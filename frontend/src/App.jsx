@@ -1,5 +1,5 @@
 // App.jsx
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Header from './components/Header';
 import ProtectedRoute from './components/ProtectedRoute';
 import CreateSubject from "./pages/CreateSubject";
@@ -7,13 +7,16 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Planos from "./pages/Planos";
 import Cronograma from "./pages/Cronograma";
+import Home from "./pages/Home";
 
-function App() {
+function AppShell() {
+  const location = useLocation();
+  const showHeader = location.pathname !== "/"; // hide global header on Home
   return (
-    <BrowserRouter>
-      <Header />
+    <>
+      {showHeader && <Header />}
       <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
 
         <Route element={<ProtectedRoute />}> 
@@ -23,8 +26,16 @@ function App() {
           <Route path="/subjects" element={<CreateSubject />} />
         </Route>
 
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppShell />
     </BrowserRouter>
   );
 }
