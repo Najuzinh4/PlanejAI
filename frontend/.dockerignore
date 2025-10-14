@@ -1,0 +1,13 @@
+# dependencies
+node_modules
+.dist
+dist
+.vite
+
+# python
+__pycache__
+.pytest_cache
+.venv
+
+# vcs
+.git
