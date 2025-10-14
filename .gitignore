@@ -1,0 +1,29 @@
+# Node
+node_modules/
+*.log
+.dist/
+dist/
+.vite/
+
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.coverage*
+.venv/
+
+# Local dev DBs
+backend/dev.db
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Builds / Docker
+frontend/public/*.map
+frontend/.dockerignore
+backend/.dockerignore
