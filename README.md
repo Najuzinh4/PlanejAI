@@ -107,3 +107,23 @@ Ana JÃºlia Rocha Gaspar â€“ Projeto de Final de Curso â€“ Universidade Estadual 
 ## ðŸ“· ProtÃ³tipo
 
 ![ProtÃ³tipo](docs/prototipo.png)
+## Rodar com Docker
+
+Requisitos: Docker Desktop atualizado.
+
+### Subir tudo (DB + API + Frontend)
+```powershell
+# na raiz do repo
+docker compose up --build
+```
+- Frontend: http://localhost:4173
+- Backend: http://localhost:8000
+- Postgres: localhost:5432 (postgres/postgres, DB: planejai)
+
+Observações
+- O backend cria as tabelas e faz seed de dados mínimos no startup (usuário demo e 1 plano com itens), então a tela de Planos já lista algo na primeira execução.
+- Para reiniciar do zero (limpar dados): `docker compose down -v` e depois `docker compose up --build`.
+
+### Variáveis
+- O frontend é buildado com `VITE_API_URL=http://localhost:8000`.
+- Se quiser apontar para outro backend, ajuste `args.VITE_API_URL` em `docker-compose.yml` e re-build.
