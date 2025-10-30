@@ -1,4 +1,4 @@
-fastapi
+﻿fastapi
 uvicorn
 openai
 sqlalchemy
@@ -6,3 +6,7 @@ pytest
 
 psycopg2-binary
 
+passlib
+python-jose[cryptography]
+
+email-validator
