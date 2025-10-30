@@ -1,8 +1,10 @@
-// App.jsx
+﻿// App.jsx
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Header from './components/Header';
 import ProtectedRoute from './components/ProtectedRoute';
 import CreateSubject from "./pages/CreateSubject";
+import CreatePlan from "./pages/CreatePlan";
+import PlanDetail from "./pages/PlanDetail";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Planos from "./pages/Planos";
@@ -22,6 +24,8 @@ function AppShell() {
         <Route element={<ProtectedRoute />}> 
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/planos" element={<Planos />} />
+          <Route path="/plans/new" element={<CreatePlan />} />
+          <Route path="/plans/:id" element={<PlanDetail />} />
           <Route path="/cronograma" element={<Cronograma />} />
           <Route path="/subjects" element={<CreateSubject />} />
         </Route>
