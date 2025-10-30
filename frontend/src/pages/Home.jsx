@@ -9,7 +9,7 @@ export default function Home() {
           <img src="/planejai-icon.png" alt="PlanejAI" className="h-8 w-8" />
           <span className="text-xl font-semibold text-[#00B7E6]">PlanejAI</span>
         </Link>
-        <Link to="/login" className="text-sm font-medium text-[#222222] hover:text-[#7B42F6]">Sign In</Link>
+        <Link to="/login" className="text-sm font-medium text-[#222222] hover:text-[#7B42F6]">Log In</Link>
       </header>
 
       {/* Hero */}
