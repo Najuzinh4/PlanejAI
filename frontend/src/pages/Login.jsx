@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 
 export default function Login() {
@@ -14,7 +14,10 @@ export default function Login() {
     try {
       const { data } = await api.post('/auth/login', { email, senha });
       localStorage.setItem('token', data.access_token);
-      navigate('/dashboard');
+      // Decide destino conforme existência de plano
+      const planos = await api.get('/planos');
+      const hasPlan = Array.isArray(planos.data) && planos.data.length > 0;
+      navigate(hasPlan ? '/dashboard' : '/plans/new');
     } catch (e) {
       setError('Credenciais inválidas');
     }
@@ -29,6 +32,7 @@ export default function Login() {
       </div>
       <button className="mt-4 inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white" onClick={handleLogin}>Entrar</button>
       {error && <div className="mt-3 text-sm text-red-600">{error}</div>}
+      <div className="mt-4 text-sm text-gray-700">Não tem conta? <Link className="text-blue-600 hover:underline" to="/signup">Criar conta</Link></div>
     </div>
   );
 }

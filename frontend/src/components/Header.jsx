@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+﻿import { Link, NavLink, useNavigate } from 'react-router-dom';
 
 export default function Header() {
   const navigate = useNavigate();
@@ -13,13 +13,10 @@ export default function Header() {
         <nav className="flex gap-2">
           <NavLink to="/dashboard" className={link}>Dashboard</NavLink>
           <NavLink to="/planos" className={link}>Planos</NavLink>
-          <NavLink to="/subjects" className={link}>Disciplinas</NavLink>
-          <NavLink to="/cronograma" className={link}>Cronograma</NavLink>
+          <NavLink to="/plans/new" className={link}>Novo Plano</NavLink>
         </nav>
         <button onClick={logout} className='text-sm text-gray-600 hover:text-blue-600'>Sair</button>
       </div>
     </header>
   );
 }
-
-
