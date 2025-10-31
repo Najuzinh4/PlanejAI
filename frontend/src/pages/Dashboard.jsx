@@ -40,6 +40,10 @@ export default function Dashboard() {
     return { total, done, percent };
   }, [detail]);
 
+  const toggle = async (itemId) => {
+    try { await api.patch(`/planos/items/${itemId}/toggle`); const id = list[0]?.id; if (id) { const d = await api.get(`/planos/${id}`); setDetail(d.data); } } catch {}
+  };
+
   if (loading) return <div className="container py-6">Carregando...</div>;
 
   if (list.length === 0) {
@@ -51,6 +55,8 @@ export default function Dashboard() {
       </div>
     );
   }
+
+  const preview = (detail?.itens || []).sort((a,b) => (a.data_fim?1:0)-(b.data_fim?1:0)).slice(0,6);
 
   return (
     <div className="container py-6">
@@ -72,10 +78,15 @@ export default function Dashboard() {
         </section>
 
         <section className="rounded-lg border bg-white p-4">
-          <h3 className="mb-2 text-lg font-semibold">Outros atalhos</h3>
-          <ul className="list-disc pl-5 text-sm text-gray-700">
-            <li>Crie um novo plano ajustando horas e objetivo</li>
-            <li>Acompanhe suas tarefas e marque como concluídas</li>
+          <h3 className="mb-2 text-lg font-semibold">Tarefas rápidas</h3>
+          <ul className="space-y-2">
+            {preview.map(it => (
+              <li key={it.id_item_do_plano} className="flex items-center gap-3">
+                <input type="checkbox" className="h-4 w-4" checked={!!it.data_fim} onChange={() => toggle(it.id_item_do_plano)} />
+                <span className={it.data_fim ? 'line-through text-gray-500' : ''}>{it.descricao}</span>
+              </li>
+            ))}
+            {preview.length === 0 && <li className="text-sm text-gray-600">Sem tarefas ainda.</li>}
           </ul>
         </section>
       </div>
