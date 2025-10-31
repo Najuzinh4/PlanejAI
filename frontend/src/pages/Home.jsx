@@ -21,7 +21,7 @@ export default function Home() {
           <img src="/planejai-icon.png" alt="PlanejAI" className="h-8 w-8" />
           <span className="text-xl font-semibold text-[#00B7E6]">PlanejAI</span>
         </Link>
-        <Link to="/login" className="text-sm font-medium text-[#222222] hover:text-[#7B42F6]">Log In</Link>
+        <Link to="/signup" className="text-sm font-medium text-[#222222] hover:text-[#7B42F6]">Log In</Link>
       </header>
 
       {/* Hero */}
@@ -36,7 +36,7 @@ export default function Home() {
           </p>
 
           <Link
-            to="/login"
+            to="/signup"
             className="inline-flex items-center rounded-xl bg-[#7B42F6] px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-[#6b3aeb] focus:outline-none focus:ring-2 focus:ring-[#7B42F6]/30"
           >
             Comece agora
@@ -57,3 +57,4 @@ export default function Home() {
     </div>
   );
 }
+

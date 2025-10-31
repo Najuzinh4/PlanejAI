@@ -15,6 +15,8 @@ export default function CreatePlan() {
   const [step, setStep] = useState(1);
   const [subjects, setSubjects] = useState([]);
   const [selected, setSelected] = useState([]); // ids
+  const [subjectName, setSubjectName] = useState('');
+  const [subjectNames, setSubjectNames] = useState([]); // nomes manuais
   const [dificuldade, setDificuldade] = useState('media');
   const [horas, setHoras] = useState(6);
   const [periodo, setPeriodo] = useState('');
@@ -24,7 +26,7 @@ export default function CreatePlan() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const canNext1 = useMemo(() => selected.length > 0, [selected]);
+  const canNext1 = useMemo(() => selected.length > 0 || subjectNames.length > 0, [selected, subjectNames]);
   const canNext2 = useMemo(() => Number(horas) > 0, [horas]);
 
   useEffect(() => {
@@ -35,11 +37,23 @@ export default function CreatePlan() {
     setSelected((cur) => cur.includes(id) ? cur.filter(x => x !== id) : [...cur, id]);
   };
 
+  const addSubjectName = () => {
+    const v = subjectName.trim();
+    if (!v) return;
+    setSubjectNames((cur) => Array.from(new Set([...cur, v])));
+    setSubjectName('');
+  };
+
+  const removeSubjectName = (name) => {
+    setSubjectNames((cur) => cur.filter(n => n !== name));
+  };
+
   const generateAndSave = async () => {
     setLoading(true);
     try {
       const { data } = await api.post('/planos', {
         subject_ids: selected,
+        subject_names: subjectNames,
         horas_por_semana: Number(horas),
         dificuldade,
         objetivo,
@@ -47,7 +61,6 @@ export default function CreatePlan() {
         timeframe_weeks: Number(semanas)
       });
       setPreview((data?.itens || []).map(i => `- ${i.descricao}`).join('\n'));
-      // Após gerar e salvar, navegar para dashboard
       setTimeout(() => navigate('/dashboard'), 800);
     } catch (e) {
       setPreview('Erro ao gerar o plano.');
@@ -72,8 +85,27 @@ export default function CreatePlan() {
                   </div>
                 </label>
               ))}
-              {subjects.length === 0 && <div className="text-sm text-gray-600">Nenhuma disciplina. Adicione em "Disciplinas".</div>}
+              {subjects.length === 0 && <div className="text-sm text-gray-600">Sem disciplinas ainda. Você pode informar nomes abaixo.</div>}
             </div>
+
+            <div className="mb-3">
+              <div className="mb-1 text-sm text-gray-700">Adicionar nomes de disciplinas (opcional)</div>
+              <div className="flex gap-2">
+                <input className="flex-1 rounded-md border px-3 py-2" placeholder="Ex.: Cálculo I" value={subjectName} onChange={e => setSubjectName(e.target.value)} />
+                <button className="rounded-md border px-3 py-2" onClick={addSubjectName}>Adicionar</button>
+              </div>
+              {!!subjectNames.length && (
+                <div className="mt-2 flex flex-wrap gap-2 text-sm">
+                  {subjectNames.map(n => (
+                    <span key={n} className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1">
+                      {n}
+                      <button className="text-red-600" onClick={() => removeSubjectName(n)}>x</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="mb-2">
               <label className="mr-2 text-sm text-gray-700">Dificuldade geral</label>
               <select className="rounded-md border px-3 py-2" value={dificuldade} onChange={e => setDificuldade(e.target.value)}>
@@ -114,7 +146,7 @@ export default function CreatePlan() {
 
         {step === 4 && (
           <Step title="Passo 4: Gerar com IA → Preview">
-            <button className="rounded-md bg-blue-600 px-4 py-2 text-white disabled:opacity-50" disabled={loading || selected.length === 0} onClick={generateAndSave}>
+            <button className="rounded-md bg-blue-600 px-4 py-2 text-white disabled:opacity-50" disabled={loading || (selected.length === 0 && subjectNames.length === 0)} onClick={generateAndSave}>
               {loading ? 'Gerando...' : 'Gerar e Salvar'}
             </button>
             {preview && (
