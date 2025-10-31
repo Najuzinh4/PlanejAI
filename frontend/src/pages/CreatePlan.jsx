@@ -1,6 +1,8 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import Loader from '../components/Loader';
+import SubjectInput from '../components/SubjectInput';
 
 function Step({ title, children }) {
   return (
@@ -71,6 +73,15 @@ export default function CreatePlan() {
 
   return (
     <div className="container py-6">
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80">
+          <div className="flex flex-col items-center gap-2">
+            <Loader />
+            <div className="text-sm text-gray-700">Gerando plano...</div>
+          </div>
+        </div>
+      )}
+
       <h2 className="mb-4 text-2xl font-semibold">Criar Plano</h2>
       <div className="grid gap-4">
         {step === 1 && (
@@ -85,13 +96,12 @@ export default function CreatePlan() {
                   </div>
                 </label>
               ))}
-              {subjects.length === 0 && <div className="text-sm text-gray-600">Sem disciplinas ainda. Você pode informar nomes abaixo.</div>}
             </div>
 
             <div className="mb-3">
-              <div className="mb-1 text-sm text-gray-700">Adicionar nomes de disciplinas (opcional)</div>
-              <div className="flex gap-2">
-                <input className="flex-1 rounded-md border px-3 py-2" placeholder="Ex.: Cálculo I" value={subjectName} onChange={e => setSubjectName(e.target.value)} />
+              <div className="mb-2 text-sm text-gray-700">Ou informe o que você quer estudar</div>
+              <div className="flex items-center gap-3">
+                <SubjectInput value={subjectName} onChange={setSubjectName} onAdd={addSubjectName} />
                 <button className="rounded-md border px-3 py-2" onClick={addSubjectName}>Adicionar</button>
               </div>
               {!!subjectNames.length && (
