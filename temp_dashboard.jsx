@@ -69,7 +69,7 @@ export default function Dashboard() {
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="rounded-lg border bg-white p-4">
           <h3 className="mb-2 text-lg font-semibold">Plano atual</h3>
-          <div className="mb-2 text-sm text-gray-700">{detail?.topico || 'Sem título'} — {detail?.periodo || 'sem período'}</div>
+          <div className="mb-2 text-sm text-gray-700">{detail?.topico || 'Sem título'} • {detail?.periodo || 'sem período'}</div>
           <div className="mb-2 text-sm text-gray-700">Progresso: {stats.done}/{stats.total} ({stats.percent}%)</div>
           <Progress percent={stats.percent} />
           <div className="mt-3 flex gap-2">
@@ -86,3 +86,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

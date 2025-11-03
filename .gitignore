@@ -13,6 +13,7 @@ __pycache__/
 .pytest_cache/
 .coverage*
 .venv/
+.env
 
 # Local dev DBs
 backend/dev.db

@@ -3,6 +3,7 @@ uvicorn
 openai
 sqlalchemy
 pytest
+python-dotenv
 
 psycopg2-binary
 
@@ -10,3 +11,4 @@ passlib
 python-jose[cryptography]
 
 email-validator
+pydantic-settings

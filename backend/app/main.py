@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.routes import router as api_router
 from app.core.security import hash_password
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Create tables automatically (dev only)
 Base.metadata.create_all(bind=engine)

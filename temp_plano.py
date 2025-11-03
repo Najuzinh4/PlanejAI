@@ -17,10 +17,17 @@ router = APIRouter()
 
 
 class PlanoCreate(BaseModel):
-    topico: str
+    subject_ids: Optional[List[int]] = []
+    subject_names: Optional[List[str]] = []
     horas_por_semana: int
-    meses: int | None = None
-    periodo: str | None = None
+    dificuldade: Optional[str] = None  # baixa, media, alta
+    objetivo: Optional[str] = None
+    periodo: Optional[str] = None
+    timeframe_weeks: Optional[int] = None
+    weekly_focus: Optional[str] = None
+    task_estimated_hours: Optional[int] = None
+
+
 @router.get("/planos")
 def list_planos(
     db: Session = Depends(get_db),
@@ -58,26 +65,38 @@ def create_plano(
     db: Session = Depends(get_db),
     current_user: Usuario = Depends(get_current_user),
 ):
-    # Minimal: usar apenas tópico + horas/semana + meses/período
-    plano_periodo = None
-    if payload.periodo:
-        plano_periodo = payload.periodo
-    elif payload.meses is not None:
-        plano_periodo = f"{payload.meses} meses"
+    subjects: List[str] = []
+    if payload.subject_ids:
+        rows = (
+            db.query(Subject)
+            .filter(Subject.id_usuario == current_user.id_usuario, Subject.id_disciplina.in_(payload.subject_ids))
+            .all()
+        )
+        subjects.extend([r.nome for r in rows])
+    if payload.subject_names:
+        subjects.extend(payload.subject_names)
 
-    prompt_builder = PlanPrompt(
-        topico=payload.topico,
-        horas_por_semana=payload.horas_por_semana,
-        meses=payload.meses,
-        periodo=plano_periodo,
-    )
-    plan_text = generate_plan_text(prompt_builder.build())
+    subj_str = ", ".join(subjects) if subjects else "Estudos"
+
+    prompt_parts = [
+        "Gere um cronograma de estudo estruturado por semanas, com tarefas acionaveis.",
+        f"Disciplinas: {subj_str}.",
+        f"Disponibilidade: {payload.horas_por_semana} horas por semana.",
+    ]
+    if payload.dificuldade:
+        prompt_parts.append(f"Dificuldade percebida: {payload.dificuldade}.")
+    if payload.objetivo:
+        prompt_parts.append(f"Objetivo: {payload.objetivo}.")
+    if payload.timeframe_weeks:
+        prompt_parts.append(f"Prazo: {payload.timeframe_weeks} semanas.")
+    prompt_parts.append("Responda em formato de lista por semana, com bullets.")
+    plan_text = generate_study_plan(" ".join(prompt_parts))
 
     # Persist Plano
     plano = Plano(
         id_usuario=current_user.id_usuario,
-        periodo=plano_periodo,
-        topico=payload.topico.strip(),
+        periodo=payload.periodo,
+        topico=subj_str,
         tempo=payload.horas_por_semana,
         prova=False,
         tipo=False,
@@ -92,9 +111,11 @@ def create_plano(
     if items:
         db.add_all(items)
         db.commit()
+        # Refresh relationship
         _ = plano.itens
 
     return plano
+
 
 # touch
 
@@ -177,17 +198,6 @@ def toggle_item_done_ext(item_id: int, db: Session = Depends(get_db), current_us
     item.data_fim = None if item.data_fim else _date.today()
     db.add(item); db.commit(); db.refresh(item)
     return {"id_item_do_plano": item.id_item_do_plano, "descricao": item.descricao, "data_inicio": str(item.data_inicio) if item.data_inicio else None, "data_fim": str(item.data_fim) if item.data_fim else None, "temp": item.temp}
-
-
-
-
-
-
-
-
-
-
-
 
 
 
