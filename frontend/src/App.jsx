@@ -12,10 +12,15 @@ import Home from "./pages/Home";
 
 function AppShell() {
   const location = useLocation();
-  const showHeader = location.pathname !== "/"; // hide global header on Home
+  // Sempre renderiza o header exceto na landing ("/") — a landing tem seu próprio header
+  const isAuthenticated = !!localStorage.getItem('token');
+  const authRoutes = ['/dashboard', '/planos', '/plans'];
+  const onAuthRoute = authRoutes.some(r => location.pathname === r || location.pathname.startsWith(r + '/'));
+  const showFullHeader = isAuthenticated && onAuthRoute;
+  const isHome = location.pathname === '/';
   return (
     <>
-      {showHeader && <Header />}
+      {!isHome && <Header full={showFullHeader} />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
