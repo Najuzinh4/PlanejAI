@@ -40,7 +40,7 @@ export default function Login() {
   };
 
   return (
-    <div className="container py-6">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-6 px-4 transform -translate-y-8 md:-translate-y-12 lg:-translate-y-16">
       <StyledWrapper>
         <form className="form" onSubmit={handleLogin}>
           <div className="flex-column"><label>Email</label></div>

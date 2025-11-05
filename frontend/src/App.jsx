@@ -20,7 +20,7 @@ function AppShell() {
   const isHome = location.pathname === '/';
   return (
     <>
-      {!isHome && <Header full={showFullHeader} />}
+      <Header full={showFullHeader} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />

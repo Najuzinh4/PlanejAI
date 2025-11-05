@@ -15,17 +15,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white text-[#222222]">
-      {/* Header */}
-      <header className="container flex items-center justify-between py-4">
-        <Link to="/" className="flex items-center">
-          <img
-            src="/planejai-icon.png"
-            alt="PlanejAI logo"
-            className="h-16 w-16 md:h-20 md:w-20 lg:h-24 lg:w-24"
-          />
-        </Link>
-        <Link to="/login" className="text-sm font-medium text-[#222222] hover:text-[#7B42F6]">Log In</Link>
-      </header>
+      {/* Header is rendered globally by Header component; keep page content below */}
 
       {/* Hero */}
       <main className="container grid min-h-[70vh] grid-cols-1 items-center gap-10 py-8 lg:min-h-[75vh] lg:grid-cols-2">
