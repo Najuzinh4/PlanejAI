@@ -2,9 +2,10 @@
 import { useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import api from '../services/api';
+import Loader from '../components/Loader';
 
 const CTA = styled.button`
-  display:flex; width:170px; align-items:center; justify-content:space-between; background:#1d2129; color:#fff; border:none; border-radius:40px; box-shadow:0 5px 10px #bebebe; cursor:pointer;
+  display:inline-flex; width:170px; align-items:center; justify-content:space-between; background:#1d2129; color:#fff; border:none; border-radius:40px; box-shadow:0 5px 10px #bebebe; cursor:pointer;
   .text{padding:10px 16px;}
   .icon-Container{width:45px;height:45px;background:#f59aff;display:flex;align-items:center;justify-content:center;border-radius:50%;border:3px solid #1d2129}
   .icon-Container svg{transition-duration:1.5s}
@@ -29,6 +30,9 @@ export default function Signup() {
       const { data } = await api.post('/auth/register', { nome, email, senha });
       if (data?.access_token) {
         localStorage.setItem('token', data.access_token);
+        // save the name and a flag so we can show a welcome banner on Dashboard
+        localStorage.setItem('user_name', nome);
+        localStorage.setItem('justCreated', '1');
         setDone(true);
       } else {
         navigate('/login');
@@ -37,10 +41,23 @@ export default function Signup() {
     finally { setLoading(false); }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader />
+      </div>
+    );
+  }
+
   if (done) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-6 px-4">
         <div className="text-center">
+          <div className="flex justify-center mb-4">
+            <Link to="/">
+              <img src="/planejai-icon.png" alt="PlanejAI" className="h-20 w-auto md:h-24 lg:h-28" />
+            </Link>
+          </div>
           <h2 className="mb-2 text-2xl font-semibold">Conta criada!</h2>
           <p className="mb-4 text-gray-700">Vamos criar seu primeiro plano.</p>
           <CTA onClick={() => navigate('/plans/new')}>
@@ -68,6 +85,11 @@ export default function Signup() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-6 px-4 transform -translate-y-8 md:-translate-y-12 lg:-translate-y-16">
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow">
+        <div className="flex justify-center mb-6">
+          <Link to="/">
+            <img src="/planejai-icon.png" alt="PlanejAI" className="h-20 w-auto md:h-24 lg:h-28" />
+          </Link>
+        </div>
         <h2 className="mb-4 text-2xl font-semibold">Criar Conta</h2>
         <div className="space-y-3">
           <input className="w-full rounded-md border px-3 py-2" placeholder="Nome" value={nome} onChange={e => setNome(e.target.value)} />

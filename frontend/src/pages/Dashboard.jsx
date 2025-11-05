@@ -15,7 +15,14 @@ export default function Dashboard() {
   const [list, setList] = useState([]);
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [welcomeName, setWelcomeName] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const just = localStorage.getItem('justCreated');
+    const name = localStorage.getItem('user_name');
+    if (just && name) setWelcomeName(name);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -50,6 +57,16 @@ export default function Dashboard() {
   if (list.length === 0) {
     return (
       <div className="container py-6">
+        {welcomeName && (
+          <div className="mb-4 flex items-center justify-between rounded-md border bg-green-50 p-4">
+            <div className="text-sm text-gray-800">Conta criada, <strong>{welcomeName}</strong> — criar o primeiro plano.</div>
+            <div className="flex items-center gap-2">
+              <button className="rounded-md bg-blue-600 px-4 py-2 text-white" onClick={() => { localStorage.removeItem('justCreated'); localStorage.removeItem('user_name'); navigate('/plans/new'); }}>let's go</button>
+              <button className="text-sm text-gray-600" onClick={() => { localStorage.removeItem('justCreated'); setWelcomeName(null); }}>Fechar</button>
+            </div>
+          </div>
+        )}
+
         <h2 className="mb-4 text-2xl font-semibold">Bem-vindo!</h2>
         <p className="mb-4 text-gray-700">Você ainda não possui planos. Crie o seu primeiro para começar.</p>
         <button className="rounded-md bg-blue-600 px-4 py-2 text-white" onClick={() => navigate('/plans/new')}>Criar Plano</button>
