@@ -7,9 +7,11 @@ export default function Header({ full = false }) {
   const logout = () => { localStorage.removeItem('token'); navigate('/login'); };
   const link = ({ isActive }) =>
     `px-3 py-2 rounded-md ${isActive ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-blue-600'}`;
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+  const hideBorder = isHome || isAuthPage;
 
   return (
-  <header className={`${isHome ? '' : 'border-b'} bg-white`}>
+    <header className={`${hideBorder ? '' : 'border-b'} bg-white sticky top-0 z-50`}>
       <div className="container flex h-14 items-center justify-between">
         <Link to="/" className="font-semibold">
           <img src="/planejai-icon.png" alt="PlanejAI" className="h-16 w-auto md:h-20 lg:h-24" />
@@ -24,8 +26,8 @@ export default function Header({ full = false }) {
             <button onClick={logout} className='text-sm text-gray-600 hover:text-blue-600'>Sair</button>
           </>
         ) : (
-          // minimal header shows only the logo and a login link on the right
-          <Link to="/login" className="text-sm font-medium text-[#222222] hover:text-[#7B42F6]">Log in</Link>
+          // minimal header shows only the logo; on auth pages don't show 'Log in' link
+          isAuthPage ? <div /> : <Link to="/login" className="text-sm font-medium text-[#222222] hover:text-[#7B42F6]">Entrar</Link>
         )}
       </div>
     </header>
