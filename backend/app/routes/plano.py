@@ -11,9 +11,12 @@ from app.core.auth import get_current_user
 from app.schemas.plano import PlanoOut
 from app.services.open_ia_service import PlanPrompt, generate_plan_text
 from app.services.plan_parser import parse_plan_text_to_items
+import logging
 from pydantic import BaseModel
 
 router = APIRouter()
+
+logger = logging.getLogger(__name__)
 
 
 class PlanoCreate(BaseModel):
@@ -71,7 +74,10 @@ def create_plano(
         meses=payload.meses,
         periodo=plano_periodo,
     )
-    plan_text = generate_plan_text(prompt_builder.build())
+    prompt = prompt_builder.build()
+    logger.info("Generating plan for user %s topic=%s", current_user.email if hasattr(current_user, 'email') else current_user.id_usuario, payload.topico)
+    plan_text = generate_plan_text(prompt)
+    logger.info("Generated plan text length=%d", len(plan_text or ""))
 
     # Persist Plano
     plano = Plano(
@@ -87,7 +93,26 @@ def create_plano(
     db.refresh(plano)
 
     # Parse and persist items
-    items_desc = parse_plan_text_to_items(plan_text)
+    items_desc = []
+    # if the generator returned structured weeks JSON, flatten into items
+    if isinstance(plan_text, dict) and 'weeks' in plan_text:
+        weeks = plan_text.get('weeks') or []
+        for w in weeks:
+            title = w.get('title') if isinstance(w, dict) else None
+            tasks = w.get('tasks') if isinstance(w, dict) else []
+            if tasks:
+                for t in tasks:
+                    if title:
+                        items_desc.append(f"{title}: {t}")
+                    else:
+                        items_desc.append(str(t))
+            elif title:
+                items_desc.append(str(title))
+    else:
+        # fallback to textual parser
+        items_desc = parse_plan_text_to_items(plan_text)
+
+    logger.info("Parsed %d items from plan text", len(items_desc))
     items = [ItemDoPlano(id_pe=plano.id_pe, descricao=d) for d in items_desc[:100]]
     if items:
         db.add_all(items)
