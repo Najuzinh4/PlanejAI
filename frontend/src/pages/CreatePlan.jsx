@@ -2,6 +2,7 @@
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import Loader from '../components/Loader';
+import GeneratorLoader from '../components/GeneratorLoader';
 
 function Step({ title, children }) {
   return (
@@ -33,7 +34,14 @@ export default function CreatePlan() {
         meses: Number(meses)
       });
       setPreview((data?.itens || []).map(i => `- ${i.descricao}`).join('\n'));
-      setTimeout(() => navigate('/dashboard'), 800);
+      // navigate to the created plan detail when available
+      const newId = data?.id_pe || data?.id;
+      if (newId) {
+        // small delay so UI shows preview briefly
+        setTimeout(() => navigate(`/plans/${newId}`), 400);
+      } else {
+        setTimeout(() => navigate('/dashboard'), 800);
+      }
     } catch (e) {
       setPreview('Erro ao gerar o plano.');
     } finally {
@@ -46,7 +54,8 @@ export default function CreatePlan() {
       {loading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80">
           <div className="flex flex-col items-center gap-2">
-            <Loader />
+            {/* Use the GeneratorLoader while generating plans, keep the default Loader for other uses */}
+            <GeneratorLoader />
             <div className="text-sm text-gray-700">Gerando plano...</div>
           </div>
         </div>

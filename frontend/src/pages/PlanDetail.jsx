@@ -33,6 +33,47 @@ export default function PlanDetail() {
     });
   }, [plan, showOnlyPending]);
 
+  // Build groups by week marker (e.g. 'Semana 1') to render sections
+  const grouped = useMemo(() => {
+    const items = plan?.itens || [];
+    const groups = [];
+    let current = { title: null, items: [] };
+
+    const isWeekMarker = (s = '') => /\bsemana\s*\d+/i.test(s);
+    const isTrivial = (s = '') => {
+      const low = (s || '').toLowerCase().trim();
+      if (!low) return true;
+      if (low === 'início' || low === 'inicio' || low === 'horas') return true;
+      if (low.includes('dd/mm') || low.includes('aaaa')) return true;
+      if (/^\[.?\]/.test(low)) return true; // [ ] or [x]
+      // lines that are too short
+      if (low.length < 3) return true;
+      return false;
+    };
+
+    for (const it of items) {
+      const desc = String(it.descricao || '').trim();
+      if (!desc) continue;
+      if (isWeekMarker(desc)) {
+        // start new group
+        // push previous
+        if (current.items.length > 0 || current.title) groups.push(current);
+        current = { title: desc, items: [] };
+        continue;
+      }
+      if (isTrivial(desc)) continue;
+      // otherwise add to current group
+      current.items.push(it);
+    }
+    if (current.items.length > 0 || current.title) groups.push(current);
+
+    // If no week markers found, collapse into a single unnamed group
+    if (groups.length === 0 && items.length > 0) {
+      return [{ title: null, items: items.filter(i => !isTrivial(String(i.descricao || ''))) }];
+    }
+    return groups;
+  }, [plan]);
+
   const load = async () => {
     setLoading(true);
     try {
@@ -138,29 +179,36 @@ export default function PlanDetail() {
       {msg && <div className="mt-2 text-sm text-gray-700">{msg}</div>}
 
       <h3 className="mt-6 mb-2 text-lg font-semibold">Itens</h3>
-      <ul className="space-y-2">
-        {filteredItems.map((it) => (
-          <li key={it.id_item_do_plano} className="flex items-center justify-between rounded-md border bg-white p-3">
-            <div className="flex flex-1 items-start gap-3">
-              <input type="checkbox" className="mt-2" checked={!!it.data_fim} onChange={() => toggleItem(it.id_item_do_plano)} />
-              <div className="flex-1">
-                <input className="mb-2 w-full rounded-md border px-2 py-1" value={it.descricao} onChange={e => updateItem(it.id_item_do_plano, { descricao: e.target.value })} />
-                <div className="flex gap-2 text-sm">
-                  <label className="flex items-center gap-2">
-                    <span className="text-gray-600">Início</span>
-                    <input type="date" className="rounded-md border px-2 py-1" value={it.data_inicio || ''} onChange={e => updateItem(it.id_item_do_plano, { data_inicio: e.target.value })} />
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <span className="text-gray-600">Horas</span>
-                    <input type="number" min="0" className="w-20 rounded-md border px-2 py-1" value={it.temp ?? ''} onChange={e => updateItem(it.id_item_do_plano, { temp: Number(e.target.value) })} />
-                  </label>
-                </div>
-              </div>
-            </div>
-          </li>
+      {grouped.length === 0 && <div className="text-sm text-gray-600">Sem itens.</div>}
+      <div className="space-y-4">
+        {grouped.map((grp, gi) => (
+          <section key={gi} className="rounded-md border bg-white p-3">
+            {grp.title && <h4 className="mb-2 font-medium">{grp.title}</h4>}
+            <ul className="space-y-2">
+              {grp.items.map(it => (
+                <li key={it.id_item_do_plano} className="rounded-md border p-3">
+                  <div className="flex items-start gap-3">
+                    <input type="checkbox" className="mt-1" checked={!!it.data_fim} onChange={() => toggleItem(it.id_item_do_plano)} />
+                    <div className="flex-1">
+                      <div className="mb-2 whitespace-pre-wrap text-sm">{it.descricao}</div>
+                      <div className="flex gap-2 text-sm">
+                        <label className="flex items-center gap-2">
+                          <span className="text-gray-600">Início</span>
+                          <input type="date" className="rounded-md border px-2 py-1" value={it.data_inicio || ''} onChange={e => updateItem(it.id_item_do_plano, { data_inicio: e.target.value })} />
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <span className="text-gray-600">Horas</span>
+                          <input type="number" min="0" className="w-20 rounded-md border px-2 py-1" value={it.temp ?? ''} onChange={e => updateItem(it.id_item_do_plano, { temp: Number(e.target.value) })} />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
         ))}
-        {filteredItems.length === 0 && <li className="text-sm text-gray-600">Sem itens.</li>}
-      </ul>
+      </div>
     </div>
   );
 }

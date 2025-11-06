@@ -24,7 +24,7 @@ const StyledWrapper = styled.div`
   }
 
   .spinner1 {
-    background-color: rgb(36, 36, 36);
+    background-color: rgba(255, 255, 255, 1);
     width: 100px;
     height: 100px;
     border-radius: 50px;
