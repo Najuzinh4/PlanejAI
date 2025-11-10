@@ -1,3 +1,4 @@
+﻿from datetime import date
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -5,8 +6,8 @@ from typing import List, Optional
 class ItemDoPlanoOut(BaseModel):
     id_item_do_plano: int
     descricao: str
-    data_inicio: Optional[str] = None
-    data_fim: Optional[str] = None
+    data_inicio: Optional[date] = None
+    data_fim: Optional[date] = None
     temp: Optional[int] = None
 
     class Config:
@@ -25,4 +26,5 @@ class PlanoOut(BaseModel):
 
     class Config:
         from_attributes = True
+
 

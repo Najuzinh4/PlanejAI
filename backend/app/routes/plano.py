@@ -29,7 +29,7 @@ def list_planos(
     db: Session = Depends(get_db),
     current_user: Usuario = Depends(get_current_user),
 ):
-    planos = db.query(Plano).filter(Plano.id_usuario == current_user.id_usuario).all()
+    planos = (db.query(Plano).filter(Plano.id_usuario == current_user.id_usuario).order_by(Plano.id_pe.desc()).all())
     result = [
         {
             "id": p.id_pe,
@@ -202,6 +202,7 @@ def toggle_item_done_ext(item_id: int, db: Session = Depends(get_db), current_us
     item.data_fim = None if item.data_fim else _date.today()
     db.add(item); db.commit(); db.refresh(item)
     return {"id_item_do_plano": item.id_item_do_plano, "descricao": item.descricao, "data_inicio": str(item.data_inicio) if item.data_inicio else None, "data_fim": str(item.data_fim) if item.data_fim else None, "temp": item.temp}
+
 
 
 

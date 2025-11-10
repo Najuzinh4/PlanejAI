@@ -1,6 +1,9 @@
 ﻿import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import PrimaryButton from '../components/PrimaryButton';
+import EditButton from '../components/EditButton';
+import DeleteButton from '../components/DeleteButton';
 
 export default function PlanDetail() {
   const { id } = useParams();
@@ -10,6 +13,7 @@ export default function PlanDetail() {
   const [edit, setEdit] = useState({ topico: '', periodo: '', tempo: '' });
   const [msg, setMsg] = useState('');
   const [showOnlyPending, setShowOnlyPending] = useState(false);
+  const [locked, setLocked] = useState(true);
 
   const stats = useMemo(() => {
     const itens = plan?.itens || [];
@@ -138,10 +142,11 @@ export default function PlanDetail() {
   return (
     <div className="container py-6">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-2xl font-semibold">Plano: {plan.topico || 'Sem título'}</h2>
-        <div className="flex gap-2">
-          <button className="rounded-md border px-3 py-2" onClick={duplicate}>Duplicar</button>
-          <button className="rounded-md border px-3 py-2 text-red-600" onClick={remove}>Excluir</button>
+        <h2 className="text-3xl font-semibold">Plano: {plan.topico || 'Sem título'}</h2>
+        <div className="flex gap-2 items-center">
+          <EditButton onClick={() => setLocked(!locked)} expanded={!locked} />
+          <PrimaryButton onClick={duplicate}>Duplicar</PrimaryButton>
+          <DeleteButton onClick={remove} />
         </div>
       </div>
 
@@ -166,12 +171,12 @@ export default function PlanDetail() {
       </div>
 
       <div className="mb-4 grid max-w-xl grid-cols-1 gap-2 sm:grid-cols-3">
-        <input className="rounded-md border px-3 py-2" placeholder="Tópico" value={edit.topico} onChange={e => setEdit({ ...edit, topico: e.target.value })} />
-        <input className="rounded-md border px-3 py-2" placeholder="Período" value={edit.periodo} onChange={e => setEdit({ ...edit, periodo: e.target.value })} />
-        <input className="rounded-md border px-3 py-2" placeholder="Tempo (h/sem)" type="number" value={edit.tempo} onChange={e => setEdit({ ...edit, tempo: e.target.value })} />
+        <input disabled={locked} className={`rounded-md border px-3 py-2 ${locked ? 'opacity-60' : ''}`} placeholder="Tópico" value={edit.topico} onChange={e => setEdit({ ...edit, topico: e.target.value })} />
+        <input disabled={locked} className={`rounded-md border px-3 py-2 ${locked ? 'opacity-60' : ''}`} placeholder="Período" value={edit.periodo} onChange={e => setEdit({ ...edit, periodo: e.target.value })} />
+        <input disabled={locked} className={`rounded-md border px-3 py-2 ${locked ? 'opacity-60' : ''}`} placeholder="Tempo (h/sem)" type="number" value={edit.tempo} onChange={e => setEdit({ ...edit, tempo: e.target.value })} />
       </div>
       <div className="flex items-center gap-3">
-        <button className="rounded-md bg-blue-600 px-4 py-2 text-white" onClick={save}>Salvar</button>
+        <PrimaryButton onClick={async () => { await save(); setLocked(true); }} disabled={locked}>Salvar</PrimaryButton>
         <label className="flex items-center gap-2 text-sm text-gray-700">
           <input type="checkbox" checked={showOnlyPending} onChange={e => setShowOnlyPending(e.target.checked)} /> Mostrar só pendentes
         </label>

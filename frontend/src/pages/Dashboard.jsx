@@ -26,14 +26,18 @@ export default function Dashboard() {
 
   useEffect(() => {
     (async () => {
+      setLoading(true);
       try {
         const { data } = await api.get('/planos');
-        setList(data || []);
-        if ((data || []).length > 0) {
-          const id = data[0].id; // pega o primeiro por simplicidade
-          const d = await api.get(`/planos/${id}`);
+        const arr = Array.isArray(data) ? data : [];
+        setList(arr);
+        if (arr.length > 0) {
+          const latest = [...arr].sort((a, b) => b.id - a.id)[0];
+          const d = await api.get(`/planos/${latest.id}`);
           setDetail(d.data);
         }
+      } catch (e) {
+        // ignore errors for now
       } finally {
         setLoading(false);
       }
@@ -49,7 +53,16 @@ export default function Dashboard() {
   }, [detail]);
 
   const toggle = async (itemId) => {
-    try { await api.patch(`/planos/items/${itemId}/toggle`); const id = list[0]?.id; if (id) { const d = await api.get(`/planos/${id}`); setDetail(d.data); } } catch {}
+    try {
+      await api.patch(`/planos/items/${itemId}/toggle`);
+      const id = list[0]?.id;
+      if (id) {
+        const d = await api.get(`/planos/${id}`);
+        setDetail(d.data);
+      }
+    } catch (e) {
+      // noop
+    }
   };
 
   if (loading) return <div className="container py-6">Carregando...</div>;
@@ -103,3 +116,4 @@ export default function Dashboard() {
     </div>
   );
 }
+
