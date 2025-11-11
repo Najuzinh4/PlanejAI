@@ -1,4 +1,6 @@
-﻿// App.jsx
+﻿import { ThemeProvider, CssBaseline } from '@mui/material';
+import theme from './theme';
+// App.jsx
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Header from './components/Header';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -41,9 +43,12 @@ function AppShell() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppShell />
-    </BrowserRouter>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <BrowserRouter>
+        <AppShell />
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

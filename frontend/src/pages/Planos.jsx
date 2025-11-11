@@ -1,21 +1,32 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from "../services/api";
-import EditButton from "../components/EditButton";
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Checkbox,
+  Container,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Stack,
+  Typography,
+} from '@mui/material';
 
 export default function Planos() {
   const [planos, setPlanos] = useState([]);
   const [locked, setLocked] = useState(true);
   const [selectedIds, setSelectedIds] = useState([]);
 
-  useEffect(() => {
-    api.get("/planos").then((res) => setPlanos(res.data));
-  }, []);
-
   const reload = async () => {
-    const { data } = await api.get("/planos");
+    const { data } = await api.get('/planos');
     setPlanos(data || []);
   };
+
+  useEffect(() => { reload(); }, []);
 
   const toggleSelect = (id) => {
     setSelectedIds((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
@@ -32,51 +43,49 @@ export default function Planos() {
   };
 
   return (
-    <div className="container py-6">
-      <div className="mb-2 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Meus Planos</h1>
-        <div className="flex items-center gap-2">
-          <EditButton onClick={() => setLocked(!locked)} expanded={!locked} />
-          <Link className="text-blue-600 hover:underline" to="/plans/new">Novo Plano</Link>
-        </div>
-      </div>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography variant="h5">Meus Planos</Typography>
+        <Stack direction="row" spacing={1}>
+          <Button variant={locked ? 'outlined' : 'contained'} onClick={() => setLocked(!locked)}>{locked ? 'Editar' : 'Concluir'}</Button>
+          <Button component={Link} to="/plans/new" variant="outlined">Novo Plano</Button>
+        </Stack>
+      </Box>
+
       {!locked && (
-        <div className="mb-4 flex items-center gap-2">
-          <button className="rounded-md border px-3 py-2 text-red-600 disabled:opacity-50" disabled={!selectedIds.length} onClick={deleteSelected}>
+        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+          <Button variant="outlined" color="error" disabled={!selectedIds.length} onClick={deleteSelected}>
             Excluir selecionados {selectedIds.length ? `(${selectedIds.length})` : ''}
-          </button>
+          </Button>
           {!!selectedIds.length && (
-            <button className="text-sm text-gray-600" onClick={() => setSelectedIds([])}>Limpar seleção</button>
+            <Button size="small" onClick={() => setSelectedIds([])}>Limpar seleção</Button>
           )}
-        </div>
+        </Stack>
       )}
-      <ul className="space-y-2">
-        {planos.map((plano) => (
-          <li key={plano.id} className="rounded-md border bg-white p-3">
-            <div className="flex items-start gap-3">
-              {!locked && (
-                <input type="checkbox" className="mt-1" checked={selectedIds.includes(plano.id)} onChange={() => toggleSelect(plano.id)} />
-              )}
-              <div className="flex-1">
-                {locked ? (
-                  <Link to={`/plans/${plano.id}`} className="block">
-                    <div className="font-medium">{plano.titulo}</div>
-                    <div className="text-sm text-gray-600">{plano.descricao}</div>
-                  </Link>
-                ) : (
-                  <div>
-                    <div className="font-medium">{plano.titulo}</div>
-                    <div className="text-sm text-gray-600">{plano.descricao}</div>
-                  </div>
+
+      <Card>
+        <CardContent>
+          <List>
+            {planos.map((plano) => (
+              <ListItem key={plano.id} divider secondaryAction={
+                locked ? (
+                  <Button size="small" component={Link} to={`/plans/${plano.id}`}>Abrir</Button>
+                ) : null
+              }>
+                {!locked && (
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <Checkbox edge="start" checked={selectedIds.includes(plano.id)} onChange={() => toggleSelect(plano.id)} />
+                  </ListItemIcon>
                 )}
-              </div>
-            </div>
-          </li>
-        ))}
-        {planos.length === 0 && (
-          <li className="text-sm text-gray-600">Nenhum plano encontrado.</li>
-        )}
-      </ul>
-    </div>
+                <ListItemText primary={plano.titulo} secondary={plano.descricao} />
+              </ListItem>
+            ))}
+            {!planos.length && (
+              <Typography color="text.secondary" variant="body2">Nenhum plano encontrado.</Typography>
+            )}
+          </List>
+        </CardContent>
+      </Card>
+    </Container>
   );
 }

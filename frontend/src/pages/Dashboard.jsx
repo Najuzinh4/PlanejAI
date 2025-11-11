@@ -1,17 +1,25 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
-import TasksCard from "../components/TasksCard";
-import Loader from "../components/Loader";
-
-function Progress({ percent }) {
-  const p = Math.min(100, Math.max(0, Number(percent) || 0));
-  return (
-    <div className="h-2 w-full rounded bg-gray-200">
-      <div className="h-2 rounded bg-blue-600" style={{ width: `${p}%` }} />
-    </div>
-  );
-}
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Container,
+  Grid,
+  LinearProgress,
+  List,
+  ListItem,
+  ListItemIcon,
+  Checkbox,
+  ListItemText,
+  MenuItem,
+  Select,
+  Skeleton,
+  Stack,
+  Typography,
+} from "@mui/material";
 
 export default function Dashboard() {
   const [plans, setPlans] = useState([]);
@@ -20,7 +28,11 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Load plans and pick latest by default
+  const loadPlan = async (id) => {
+    const d = await api.get(`/planos/${id}`);
+    setDetail(d.data);
+  };
+
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -31,26 +43,13 @@ export default function Dashboard() {
         if (arr.length > 0) {
           const latest = [...arr].sort((a, b) => b.id - a.id)[0];
           setCurrentId(latest.id);
-          const d = await api.get(`/planos/${latest.id}`);
-          setDetail(d.data);
+          await loadPlan(latest.id);
         }
       } finally {
         setLoading(false);
       }
     })();
   }, []);
-
-  // When selector changes, load that plan
-  const onSelectPlan = async (id) => {
-    setCurrentId(id);
-    setLoading(true);
-    try {
-      const d = await api.get(`/planos/${id}`);
-      setDetail(d.data);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const stats = useMemo(() => {
     const itens = detail?.itens || [];
@@ -63,118 +62,117 @@ export default function Dashboard() {
   const toggle = async (itemId) => {
     try {
       await api.patch(`/planos/items/${itemId}/toggle`);
-      if (currentId) {
-        const d = await api.get(`/planos/${currentId}`);
-        setDetail(d.data);
-      }
+      if (currentId) await loadPlan(currentId);
     } catch {}
   };
 
   if (loading) {
     return (
-      <div className="container py-6 flex items-center justify-center">
-        <Loader />
-      </div>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Grid container spacing={2} alignItems="stretch">
+          <Grid item xs={12} md={6}>
+            <Skeleton variant="rounded" height={140} />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Skeleton variant="rounded" height={140} />
+          </Grid>
+          <Grid item xs={12}>
+            <Skeleton variant="rounded" height={180} />
+          </Grid>
+        </Grid>
+      </Container>
     );
   }
 
   if (!plans.length) {
     return (
-      <div className="container py-6">
-        <h2 className="mb-2 text-2xl font-semibold">Bem‑vindo!</h2>
-        <p className="mb-4 text-gray-700">
-          Você ainda não possui planos. Crie o seu primeiro para começar.
-        </p>
-        <button
-          className="rounded-md bg-blue-600 px-4 py-2 text-white"
-          onClick={() => navigate("/plans/new")}
-        >
-          Criar Plano
-        </button>
-      </div>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Stack spacing={2}>
+          <Typography variant="h5">Bem‑vindo!</Typography>
+          <Typography color="text.secondary">
+            Você ainda não possui planos. Crie o seu primeiro para começar.
+          </Typography>
+          <Box>
+            <Button variant="contained" onClick={() => navigate("/plans/new")}>Criar Plano</Button>
+          </Box>
+        </Stack>
+      </Container>
     );
   }
 
-  const upcoming = (detail?.itens || [])
-    .filter((i) => !i.data_fim)
-    .slice(0, 6);
-
-  const others = plans
-    .slice(0, 6)
-    .map((p) => ({ id: p.id, titulo: p.titulo, descricao: p.descricao }));
+  const upcoming = (detail?.itens || []).filter((i) => !i.data_fim).slice(0, 6);
 
   return (
-    <div className="container py-6">
-      {/* Header */}
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-semibold">Dashboard</h2>
-        <div className="flex items-center gap-2">
-          <select
-            value={currentId || ""}
-            onChange={(e) => onSelectPlan(Number(e.target.value))}
-            className="rounded-md border bg-white px-3 py-2 text-sm"
-          >
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ mb: 2, display: "flex", gap: 2, alignItems: "center", justifyContent: "space-between" }}>
+        <Typography variant="h5">Dashboard</Typography>
+        <Stack direction="row" spacing={2} alignItems="center">
+          <Select size="small" value={currentId || ""} onChange={(e) => { setCurrentId(e.target.value); loadPlan(e.target.value); }}>
             {plans.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.titulo} {p.descricao ? `— ${p.descricao}` : ""}
-              </option>
+              <MenuItem key={p.id} value={p.id}>{p.titulo} {p.descricao ? `— ${p.descricao}` : ""}</MenuItem>
             ))}
-          </select>
-          <Link className="rounded-md border px-3 py-2 text-sm" to="/plans/new">
-            Novo Plano
-          </Link>
-        </div>
-      </div>
-
-      {/* Grid */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        {/* Current Plan */}
-        <section className="rounded-lg border bg-white p-4 lg:col-span-2">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Plano atual</h3>
-            {detail?.id_pe && (
-              <Link className="text-sm text-blue-600 hover:underline" to={`/plans/${detail.id_pe}`}>
-                Ver cronograma
-              </Link>
-            )}
-          </div>
-          <div className="mb-1 text-sm text-gray-700">
+          </Select>
+          <Button component={Link} to="/plans/new" variant="outlined">Novo Plano</Button>
+        </Stack>
+      </Box>
+ <Grid container spacing={2} alignItems="stretch">
+    <Grid item xs={12} md={6}>
+      <Card sx={{ height: "100%" }}>
+        <CardContent sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+          <Typography variant="h6">Plano atual</Typography>
+          <Typography color="text.secondary">
             {detail?.topico || "Sem título"} — {detail?.periodo || "sem período"}
-          </div>
-          <div className="mb-2 text-sm text-gray-700">
+          </Typography>
+          <Typography color="text.secondary">
             Progresso: {stats.done}/{stats.total} ({stats.percent}%)
-          </div>
-          <Progress percent={stats.percent} />
-        </section>
+          </Typography>
+          <LinearProgress variant="determinate" value={stats.percent} />
+          {detail?.id_pe && (
+            <Box>
+              <Button component={Link} to={`/plans/${detail.id_pe}`} size="small">
+                Ver cronograma
+              </Button>
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+    </Grid>
 
-        {/* Upcoming tasks */}
-        <section className="rounded-lg border bg-white p-4 lg:col-span-2">
-          <h3 className="mb-2 text-lg font-semibold">Próximas tarefas</h3>
-          <TasksCard items={upcoming} onToggle={toggle} />
-        </section>
-
-        {/* Your plans */}
-        <section className="rounded-lg border bg-white p-4">
-          <h3 className="mb-2 text-lg font-semibold">Seus planos</h3>
-          <ul className="space-y-2">
-            {others.map((p) => (
-              <li key={p.id} className="flex items-center justify-between rounded-md border p-2">
-                <div>
-                  <div className="text-sm font-medium">{p.titulo}</div>
-                  {p.descricao && <div className="text-xs text-gray-600">{p.descricao}</div>}
-                </div>
-                <button
-                  className="text-sm text-blue-600 hover:underline"
-                  onClick={() => onSelectPlan(p.id)}
-                >
-                  Abrir
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
-    </div>
-  );
+    <Grid item xs={12} md={6}>
+      <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+        <CardContent sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minHeight: 0 }}>
+          <Typography variant="h6" sx={{ mb: 1 }}>
+            Próximas tarefas
+          </Typography>
+          <Box sx={{ flexGrow: 1, minHeight: 0, overflow: "auto" }}>
+            <List dense>
+              {upcoming.length ? (
+                upcoming.map((t) => (
+                  <ListItem key={t.id_item_do_plano} disableGutters>
+                    <ListItemIcon sx={{ minWidth: 36 }}>
+                      <Checkbox
+                        edge="start"
+                        checked={!!t.data_fim}
+                        onChange={() => toggle(t.id_item_do_plano)}
+                      />
+                    </ListItemIcon>
+                    <ListItemText
+                      primaryTypographyProps={{ variant: "body2" }}
+                      primary={t.descricao}
+                    />
+                  </ListItem>
+                ))
+              ) : (
+                <Typography color="text.secondary" variant="body2">
+                  Sem tarefas pendentes.
+                </Typography>
+              )}
+            </List>
+          </Box>
+        </CardContent>
+      </Card>
+    </Grid>
+  </Grid>
+</Container>
+);
 }
-

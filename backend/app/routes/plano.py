@@ -13,6 +13,8 @@ from app.services.open_ia_service import PlanPrompt, generate_plan_text
 from app.services.plan_parser import parse_plan_text_to_items
 import logging
 from pydantic import BaseModel
+import re
+import math
 
 router = APIRouter()
 
@@ -143,6 +145,8 @@ from typing import List, Optional
 from fastapi import HTTPException, status
 
 from pydantic import BaseModel
+import re
+import math
 class PlanoUpdate(BaseModel):
     topico: Optional[str] = None
     periodo: Optional[str] = None
@@ -210,7 +214,33 @@ def toggle_item_done_ext(item_id: int, db: Session = Depends(get_db), current_us
     plano = db.get(Plano, item.id_pe)
     if plano.id_usuario != current_user.id_usuario:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Sem acesso")
-    item.data_fim = None if item.data_fim else _date.today()
+    # Toggle done/undone
+    if item.data_fim:
+        item.data_fim = None
+    else:
+        item.data_fim = _date.today()
+        # Se a tarefa não tiver horas definidas, tenta inferir a partir da descrição
+        if not item.temp:
+            desc = (item.descricao or "").lower()
+            # Procura padrões como "(1h)", "2h", "30min", "1h 30min"
+            h = 0
+            m = 0
+            mh = re.search(r"(\d+)\s*h", desc)
+            mm = re.search(r"(\d+)\s*min", desc)
+            if mh:
+                try:
+                    h = int(mh.group(1))
+                except Exception:
+                    h = 0
+            if mm:
+                try:
+                    m = int(mm.group(1))
+                except Exception:
+                    m = 0
+            # Converte para horas inteiras; se tiver minutos, arredonda pra cima
+            inferred = h + (math.ceil(m / 60) if m > 0 else 0)
+            inferred = 1
+            item.temp = inferred
     db.add(item); db.commit(); db.refresh(item)
     return {"id_item_do_plano": item.id_item_do_plano, "descricao": item.descricao, "data_inicio": str(item.data_inicio) if item.data_inicio else None, "data_fim": str(item.data_fim) if item.data_fim else None, "temp": item.temp}
 
@@ -240,3 +270,4 @@ def delete_item_permanently(item_id: int, db: Session = Depends(get_db), current
     db.delete(item)
     db.commit()
     return None
+
