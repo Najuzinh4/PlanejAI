@@ -23,7 +23,10 @@ class PlanoCreate(BaseModel):
     topico: str
     horas_por_semana: int
     meses: int | None = None
+    semanas: int | None = None
     periodo: str | None = None
+    urgente: bool | None = None
+    distrib_semana: dict[str, int] | None = None
 @router.get("/planos")
 def list_planos(
     db: Session = Depends(get_db),
@@ -56,35 +59,47 @@ def get_plano(
 
 
 @router.post("/planos", response_model=PlanoOut, status_code=status.HTTP_201_CREATED)
+
 def create_plano(
     payload: PlanoCreate,
     db: Session = Depends(get_db),
     current_user: Usuario = Depends(get_current_user),
 ):
-    # Minimal: usar apenas tópico + horas/semana + meses/período
-    plano_periodo = None
-    if payload.periodo:
-        plano_periodo = payload.periodo
+    # Horas efetivas: se houver distribuição semanal (seg..dom), soma tudo
+    horas_effective = int(payload.horas_por_semana)
+    if payload.distrib_semana:
+        try:
+            horas_effective = max(0, sum(int(v) for v in payload.distrib_semana.values()))
+        except Exception:
+            horas_effective = int(payload.horas_por_semana)
+
+    # Exibição do período
+    periodo_display = None
+    if payload.semanas is not None:
+        periodo_display = f"{payload.semanas} semanas"
     elif payload.meses is not None:
-        plano_periodo = f"{payload.meses} meses"
+        periodo_display = f"{payload.meses} meses"
+    elif payload.periodo:
+        periodo_display = payload.periodo
 
     prompt_builder = PlanPrompt(
         topico=payload.topico,
-        horas_por_semana=payload.horas_por_semana,
+        horas_por_semana=horas_effective,
         meses=payload.meses,
-        periodo=plano_periodo,
+        semanas=payload.semanas,
+        periodo=payload.periodo,
+        urgente=bool(payload.urgente),
+        distrib_semana=payload.distrib_semana,
     )
     prompt = prompt_builder.build()
-    logger.info("Generating plan for user %s topic=%s", current_user.email if hasattr(current_user, 'email') else current_user.id_usuario, payload.topico)
     plan_text = generate_plan_text(prompt)
-    logger.info("Generated plan text length=%d", len(plan_text or ""))
 
     # Persist Plano
     plano = Plano(
         id_usuario=current_user.id_usuario,
-        periodo=plano_periodo,
+        periodo=periodo_display,
         topico=payload.topico.strip(),
-        tempo=payload.horas_por_semana,
+        tempo=horas_effective,
         prova=False,
         tipo=False,
     )
@@ -94,7 +109,6 @@ def create_plano(
 
     # Parse and persist items
     items_desc = []
-    # if the generator returned structured weeks JSON, flatten into items
     if isinstance(plan_text, dict) and 'weeks' in plan_text:
         weeks = plan_text.get('weeks') or []
         for w in weeks:
@@ -109,10 +123,8 @@ def create_plano(
             elif title:
                 items_desc.append(str(title))
     else:
-        # fallback to textual parser
         items_desc = parse_plan_text_to_items(plan_text)
 
-    logger.info("Parsed %d items from plan text", len(items_desc))
     items = [ItemDoPlano(id_pe=plano.id_pe, descricao=d) for d in items_desc[:100]]
     if items:
         db.add_all(items)
@@ -120,7 +132,6 @@ def create_plano(
         _ = plano.itens
 
     return plano
-
 # touch
 
 # appended
@@ -217,3 +228,15 @@ def toggle_item_done_ext(item_id: int, db: Session = Depends(get_db), current_us
 
 
 
+
+@router.delete("/planos/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_item_permanently(item_id: int, db: Session = Depends(get_db), current_user: Usuario = Depends(get_current_user)):
+    item = db.get(ItemDoPlano, item_id)
+    if not item:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item não encontrado")
+    plano = db.get(Plano, item.id_pe)
+    if not plano or plano.id_usuario != current_user.id_usuario:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Sem acesso")
+    db.delete(item)
+    db.commit()
+    return None

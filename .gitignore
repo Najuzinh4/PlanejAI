@@ -28,3 +28,8 @@ Thumbs.db
 frontend/public/*.map
 frontend/.dockerignore
 backend/.dockerignore
+# Ignore temporary inspection files
+temp_*
+temp_*.py
+temp_*.jsx
+temp_*.js
