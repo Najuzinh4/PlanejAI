@@ -5,6 +5,7 @@ from app.services.openai_client import get_openai_client
 SYSTEM_MESSAGE = (
     "Você é um planejador de estudos especialista. Gere cronogramas práticos, em português do Brasil, "
     "com foco em resultados e retenção (prática ativa, recordação, revisão espaçada, interleaving). "
+    "Crie várias tarefas por semana (3 a 6), uma por linha, nunca agrupe várias tarefas na mesma linha. "
     "Tarefas curtas, acionáveis e específicas (verbo de ação + objetivo + resultado). "
     "Respeite rigorosamente as horas informadas. "
     "Não escreva introduções ou conclusões. Apenas a lista de bullets, uma tarefa por linha."
@@ -66,6 +67,7 @@ class PlanPrompt:
             parts.append(f"Distribuição semanal sugerida: {kv}.")
         parts.extend([
             "Regras: cubra fundamentos → prática → revisão; inclua revisão espaçada semanal e marcos de checagem.",
+            "Produza 3 a 6 linhas por semana, cada bullet já com 'Semana N — ...' e apenas UMA tarefa por linha.",
             "Formato de saída (uma tarefa por bullet):",
             "- Semana N — [título curto] (Xh ou Ymin): [descrição objetiva]",
             "Não escreva nada além da lista de bullets.",
@@ -79,9 +81,18 @@ def generate_plan_text(prompt: str) -> str:
         # Fallback simples
         weeks = [
             "Semana 1 — Diagnóstico (1h): simulado curto e análise de erros.",
-            "Semana 1 — Fundamentos (2h): leitura guiada e anotações.",
-            "Semana 1 — Prática (2h): exercícios focados nos pontos fracos.",
-            "Semana 1 — Revisão espaçada (30min): flashcards dos conceitos do dia.",
+            "Semana 1 — Fundamentos (1h30): leitura guiada e resumos rápidos.",
+            "Semana 1 — Prática (1h30): exercícios nos pontos fracos.",
+            "Semana 1 — Revisão (30min): flashcards dos conceitos do dia.",
+            "Semana 2 — Fundamentos (2h): novos tópicos + mapa mental.",
+            "Semana 2 — Prática (2h): exercícios variados + correção.",
+            "Semana 2 — Revisão espaçada (30min): flashcards.",
+            "Semana 3 — Projeto (2h): mini projeto aplicado.",
+            "Semana 3 — Simulado (1h): prova curta + correção.",
+            "Semana 3 — Revisão (30min): flashcards + erros.",
+            "Semana 4 — Revisão geral (2h): mapa mental final.",
+            "Semana 4 — Simulado final (1h): tempo real.",
+            "Semana 4 — Ajustes (1h): revisar pontos fracos.",
         ]
         return "\n".join(f"- {w}" for w in weeks)
 

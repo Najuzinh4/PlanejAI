@@ -29,6 +29,31 @@ class PlanoCreate(BaseModel):
     periodo: str | None = None
     urgente: bool | None = None
     distrib_semana: dict[str, int] | None = None
+
+
+def _extract_hours_from_text(desc: str) -> int | None:
+    """
+    Extrai horas a partir da descrição, aceitando padrões como "2h", "1h30",
+    "90min" ou "30 min". Retorna horas arredondadas para cima, mínimo 1.
+    """
+    if not desc:
+        return None
+    low = desc.lower()
+    try:
+        mh = re.search(r"(\\d+(?:[\\.,]\\d+)?)\\s*h", low)
+        mm = re.search(r"(\\d+)\\s*min", low)
+        hours = 0.0
+        if mh:
+            hours += float(mh.group(1).replace(",", "."))
+        if mm:
+            minutes = int(mm.group(1))
+            hours += minutes / 60.0
+        if hours > 0:
+            return max(1, math.ceil(hours))
+    except Exception:
+        return None
+    return None
+
 @router.get("/planos")
 def list_planos(
     db: Session = Depends(get_db),
@@ -127,7 +152,21 @@ def create_plano(
     else:
         items_desc = parse_plan_text_to_items(plan_text)
 
-    items = [ItemDoPlano(id_pe=plano.id_pe, descricao=d) for d in items_desc[:100]]
+    items_slice = items_desc[:100]
+
+    # Estima horas por item: tenta extrair da descrição; senão, distribui total planejado.
+    planned_weeks = payload.semanas or (payload.meses * 4 if payload.meses else 1)
+    total_hours = horas_effective * planned_weeks if planned_weeks else None
+    per_item_default = None
+    if total_hours and items_slice:
+        per_item_default = max(1, round(total_hours / len(items_slice)))
+
+    items = []
+    for d in items_slice:
+        h = _extract_hours_from_text(d)
+        if h is None:
+            h = per_item_default
+        items.append(ItemDoPlano(id_pe=plano.id_pe, descricao=d, temp=h))
     if items:
         db.add_all(items)
         db.commit()
@@ -239,7 +278,8 @@ def toggle_item_done_ext(item_id: int, db: Session = Depends(get_db), current_us
                     m = 0
             # Converte para horas inteiras; se tiver minutos, arredonda pra cima
             inferred = h + (math.ceil(m / 60) if m > 0 else 0)
-            inferred = 1
+            if inferred <= 0:
+                inferred = 1  # fallback mínimo
             item.temp = inferred
     db.add(item); db.commit(); db.refresh(item)
     return {"id_item_do_plano": item.id_item_do_plano, "descricao": item.descricao, "data_inicio": str(item.data_inicio) if item.data_inicio else None, "data_fim": str(item.data_fim) if item.data_fim else None, "temp": item.temp}
@@ -270,4 +310,3 @@ def delete_item_permanently(item_id: int, db: Session = Depends(get_db), current
     db.delete(item)
     db.commit()
     return None
-
